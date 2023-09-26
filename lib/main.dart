@@ -1,10 +1,11 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'entities/processo.dart';
 import 'enums/process_state_enum.dart';
 
 void main() {
-  final ciclos = [10000, 5000, 7000, 3000, 3000, 800000, 20, 5000, 4000, 1000];
+  final ciclos = [10000, 5000, 7000, 3000, 3000, 8000, 2000, 5000, 4000, 10000];
   final List<Process> processos = List.generate(
     10,
     (index) => Process(
@@ -41,16 +42,18 @@ void executeProcess(Process process) {
     // Acima por ser na proxima vez
     if (process.state.isBlocked && random.nextDouble() < 0.3) {
       print(
-          'O Processo de ID "${process.id}" está trocando seu status de "BLOQUEADO" para "PRONTO"');
+          'The Process "${process.id}" is switching state of "BLOQUEADO" to "PRONTO"');
       process.state = EnumProcessState.ready;
+      saveToTable(process);
     }
 
     //Quando executando, possui 5% de chance de entrada/saida, ficando bloqueado
     if (process.state.isRunning && random.nextDouble() < 0.05) {
       print(
-          'O Processo de ID "${process.id}" está trocando seu status de "EXECUTANDO" para "BLOQUEADO"');
+          'The Process "${process.id}"is switching state of "EXECUTANDO" to "BLOQUEADO"');
       process.state = EnumProcessState.blocked;
       process.entranceExitCount++;
+      saveToTable(process);
     }
 
     process.cicleCount--;
@@ -58,10 +61,11 @@ void executeProcess(Process process) {
     // Realização da Troca de Contexto
     if (process.programCount == quantum && process.entranceExitCount == 0) {
       // Restauração dos dados
+      print(
+          'The process "${process.id}" is switching state of "EXECUTANDO" to "PRONTO"');
       process.restore();
       process.state = EnumProcessState.ready;
-      print(
-          'O Processo de ID "${process.id}" está trocando seu status de "EXECUTANDO" para "PRONTO"');
+      saveToTable(process);
       return;
     }
   }
@@ -69,9 +73,17 @@ void executeProcess(Process process) {
   // Finalização do Processo
   process.state = EnumProcessState.finished;
   // Impressão dos dados do processo finalizado
-  print('\nO Processo de ID "${process.id}" foi finalizado:');
-  print(process.toString());
+  print('\nProcess "${process.id}" has been finished:');
+  print(process.toMap());
+  saveToTable(process);
   print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n');
+}
 
-  // Salvar dados do processo em um arquivo ou tabela de processos - todo
+void saveToTable(Process process) {
+  final arquivo = File('table.txt');
+
+  // Abre o arquivo em modo de escrita (cria se não existir, sobrescreve se existir)
+  arquivo.writeAsStringSync('${process.toMap()}\n', mode: FileMode.append);
+
+  print('Process ${process.id} saved with SUCCESS!');
 }

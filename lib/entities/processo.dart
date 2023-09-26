@@ -52,4 +52,15 @@ class Process {
       cpuCount = backup!.cpuCount;
     }
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'state': state.name,
+      'cicleCount': cicleCount,
+      'programCount': programCount,
+      'entranceExitCount': entranceExitCount,
+      'cpuCount': cpuCount,
+    };
+  }
 }
